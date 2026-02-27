@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1>{{ civilization.state.name }}</h1>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-value">{{ agents | length }}</div>
+        <div class="stat-label">Agents</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ tools | length }}</div>
+        <div class="stat-label">Tools</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ alliances | length }}</div>
+        <div class="stat-label">Alliances</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">{{ usage.total_api_calls }}</div>
+        <div class="stat-label">API Calls</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value">${{ "%.4f" % usage.estimated_cost_usd }}</div>
+        <div class="stat-label">Est. Cost</div>
+    </div>
+</div>
+
+<section class="section">
+    <h2>Agents</h2>
+    <div class="cards-grid">
+        {% for agent in agents %}
+        <a href="/agent/{{ agent.id }}" class="card agent-card">
+            <div class="card-header">
+                <h3>{{ agent.state.name }}</h3>
+                <span class="badge badge-{{ agent.state.status.value }}">{{ agent.state.status.value }}</span>
+            </div>
+            <p class="card-role">{{ agent.state.role }}</p>
+            <div class="card-stats">
+                <span>Tools: {{ agent.state.total_tools_created }}</span>
+                <span>Agents: {{ agent.state.total_agents_created }}</span>
+                <span>Calls: {{ agent.state.total_api_calls }}</span>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+
+<section class="section">
+    <h2>Tools</h2>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Scope</th>
+                <th>Version</th>
+                <th>Uses</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tool in tools %}
+            <tr>
+                <td><strong>{{ tool.name }}</strong></td>
+                <td><span class="badge badge-{{ tool.scope.value }}">{{ tool.scope.value }}</span></td>
+                <td>v{{ tool.version }}</td>
+                <td>{{ tool.usage_count }}</td>
+                <td>{{ tool.description[:80] }}{% if tool.description | length > 80 %}...{% endif %}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</section>
+
+{% if alliances %}
+<section class="section">
+    <h2>Alliances</h2>
+    <div class="cards-grid">
+        {% for alliance in alliances %}
+        <div class="card">
+            <div class="card-header">
+                <h3>{{ alliance.name }}</h3>
+            </div>
+            <p>{{ alliance.purpose }}</p>
+            <p class="card-stats">Members: {{ alliance.agent_ids | length }}</p>
+        </div>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+<section class="section">
+    <h2>Recent Activity</h2>
+    <div class="activity-log">
+        {% for event in events | reverse %}
+        <div class="activity-item">
+            <span class="activity-time">{{ event.timestamp.strftime('%H:%M:%S') }}</span>
+            <span class="activity-type">{{ event.event_type }}</span>
+            <span class="activity-data">{{ event.data }}</span>
+        </div>
+        {% endfor %}
+        {% if not events %}
+        <p class="empty-state">No activity yet.</p>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Auto-refresh events every 5 seconds
+setInterval(async () => {
+    try {
+        const resp = await fetch('/api/events?limit=20');
+        const events = await resp.json();
+        // Could update the activity log dynamically here
+    } catch (e) {}
+}, 5000);
+</script>
+{% endblock %}
