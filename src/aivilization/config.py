@@ -11,7 +11,7 @@ class AIvilizationConfig(BaseSettings):
     anthropic_api_key: str = ""
     default_model: str = "claude-sonnet-4-20250514"
     expensive_model: str = "claude-opus-4-6"
-    max_tokens_per_turn: int = 4096
+    max_tokens_per_turn: int = 16384
     max_agent_depth: int = 10
     max_agents: int = 50
     max_loop_iterations: int = 20
